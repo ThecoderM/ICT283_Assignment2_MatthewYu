@@ -48,6 +48,31 @@ void Time::SetSecond(int second)
 {
     m_second = Clamp(second, 0, 59); // Set second with range validation
 }
+// Check if hours, minutes, and seconds are all equal
+bool operator==(const Time& a, const Time& b)
+{
+    return a.GetHour() == b.GetHour() && // Compare hours
+           a.GetMinute() == b.GetMinute() && // Compare minutes
+           a.GetSecond() == b.GetSecond(); // Compare seconds
+}
+
+bool operator<(const Time& a, const Time& b)
+{
+    // First compare hours
+    if (a.GetHour() != b.GetHour())
+        return a.GetHour() < b.GetHour();
+    // If hours are equal, compare minutes
+    if (a.GetMinute() != b.GetMinute())
+        return a.GetMinute() < b.GetMinute();
+    // If both hours and minutes are equal, compare seconds
+    return a.GetSecond() < b.GetSecond();
+}
+
+bool operator>(const Time& a, const Time& b)
+{   // Greater than is defined using the less than operator
+    // If b is less than a, then a is greater than b
+    return b < a;
+}
 
 
 

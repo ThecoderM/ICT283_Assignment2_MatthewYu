@@ -89,3 +89,25 @@ bool WeatherRecord::GetHasSolarRadiation() const
 {
     return m_hasSolar;
 }
+
+bool operator==(const WeatherRecord& a, const WeatherRecord& b)
+{
+    // Two WeatherRecord objects are equal if both their date and time are the same
+    return a.GetDate() == b.GetDate() && // Compare dates
+           a.GetTime() == b.GetTime();  // Compare times
+}
+
+bool operator<(const WeatherRecord& a, const WeatherRecord& b)
+{
+    // If the dates are the same, compare based on time
+    if (a.GetDate() == b.GetDate())
+        return a.GetTime() < b.GetTime(); // Earlier time comes first
+    // Otherwise, compare based on date
+    return a.GetDate() < b.GetDate();     // Earlier date comes first
+}
+
+bool operator>(const WeatherRecord& a, const WeatherRecord& b)
+{
+    // Greater-than is defined using the less-than operator (reverse comparison)
+    return b < a;
+}

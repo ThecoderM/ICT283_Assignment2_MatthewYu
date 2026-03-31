@@ -24,46 +24,52 @@ public:
      /**
      * @brief Parameterised constructor.
      *
-     * @param hour Hour value (0–23).
-     * @param minute Minute value (0–59).
-     * @param second Second value (0–59).
+     * @param hour Hour value (0ï¿½23).
+     * @param minute Minute value (0ï¿½59).
+     * @param second Second value (0ï¿½59).
      */
     Time(int hour, int minute, int second);
     /**
      * @brief Returns the hour component.
-     * @return Hour (0–23).
+     * @return Hour (0ï¿½23).
      */
     int GetHour() const;
     /**
      * @brief Returns the minute component.
-     * @return Minute (0–59).
+     * @return Minute (0ï¿½59).
      */
     int GetMinute() const;
     /**
      * @brief Returns the second component.
-     * @return Second (0–59).
+     * @return Second (0ï¿½59).
      */
     int GetSecond() const;
     /**
      * @brief Sets the hour component.
-     * @param hour Hour value (0–23).
+     * @param hour Hour value (0ï¿½23).
      */
     void SetHour(int hour);
     /**
      * @brief Sets the minute component.
-     * @param minute Minute value (0–59).
+     * @param minute Minute value (0ï¿½59).
      */
     void SetMinute(int minute);
     /**
      * @brief Sets the second component.
-     * @param second Second value (0–59).
+     * @param second Second value (0ï¿½59).
      */
     void SetSecond(int second);
 
 private:
-    int m_hour; ///< Stores hour value (0–23)
-    int m_minute; ///< Stores minute value (0–59)
-    int m_second; ///< Stores second value (0–59)
+    int m_hour; ///< Stores hour value (0ï¿½23)
+    int m_minute; ///< Stores minute value (0ï¿½59)
+    int m_second; ///< Stores second value (0ï¿½59)
 };
-
+// Returns true if lhs time is earlier than rhs time
+bool operator<(const Time& lhs, const Time& rhs);
+// Returns true if lhs time is later than rhs time
+bool operator>(const Time& lhs, const Time& rhs);
+// Returns true if both times are equal
+bool operator==(const Time& lhs, const Time& rhs);
 #endif // TIME_H_INCLUDED
+

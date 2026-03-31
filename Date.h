@@ -1,6 +1,7 @@
 #ifndef DATE_H_INCLUDED
 #define DATE_H_INCLUDED
 #include <string>
+#include <iostream>
 /**
  * @class Date
  * @brief Represents a calendar date stored as day, month, and year.
@@ -28,6 +29,7 @@
  *
  */
 using std::string;
+using std::ostream;
 
 class Date
 {
@@ -78,7 +80,6 @@ public:
     */
     void SetYear(int year);
 
-
 private:
     /** @brief Day of the month. */
     int m_day;
@@ -87,7 +88,17 @@ private:
     /** @brief Year value. */
     int m_year;
 };
-
+// Checks if lhs date is earlier than rhs date
+bool operator<(const Date& lhs, const Date& rhs);
+// Checks if lhs date is later than rhs date
+bool operator>(const Date& lhs, const Date& rhs);
+// Checks if lhs date is earlier than or equal to rhs date
+bool operator<=(const Date& lhs, const Date& rhs);
+// Checks if lhs date is later than or equal to rhs date
+bool operator>=(const Date& lhs, const Date& rhs);
+// Checks if two Date objects are equal
+bool operator==(const Date& lhs, const Date& rhs);
+std::ostream& operator<<(std::ostream& os, const Date& d);
 
 #endif // DATE_H_INCLUDED
 

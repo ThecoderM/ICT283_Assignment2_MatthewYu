@@ -19,7 +19,7 @@
  * - This is a model-only class.
  * - It contains no parsing logic, no statistical calculations, and no I/O decisions.
  * - Missing values are tracked using boolean flags to distinguish
- *   between “zero value” and “no data”.
+ *   between ï¿½zero valueï¿½ and ï¿½no dataï¿½.
  */
 class WeatherRecord
 {
@@ -68,6 +68,8 @@ public:
     bool GetHasSolarRadiation() const;
 
 
+
+
 private:
     Date  m_date; ///<Date of observation
     Time  m_time; ///< Time of observation
@@ -79,6 +81,11 @@ private:
     bool m_hasTemp;   ///< Indicates if temperature is valid
     bool m_hasSolar;  ///< Indicates if solar radiation is valid
 };
-
-
+// Returns true if lhs occurs earlier than rhs based on date first, then time
+// This ordering is used to maintain sorted order in the BST
+bool operator<(const WeatherRecord& lhs, const WeatherRecord& rhs);
+// Returns true if lhs occurs later than rhs based on date first, then time
+bool operator>(const WeatherRecord& lhs, const WeatherRecord& rhs);
+// Returns true if both WeatherRecord objects have the same date and time
+bool operator==(const WeatherRecord& lhs, const WeatherRecord& rhs);
 #endif // WEATHERRECORD_H_INCLUDED
