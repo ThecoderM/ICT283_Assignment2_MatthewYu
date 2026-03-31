@@ -287,3 +287,4 @@ bool WeatherLog::TryParseFloat(const string& token, float& value) const // Attem
     return true;
 }
 
+
