@@ -49,7 +49,7 @@ public:
      * If records exist, they are extracted from the BST and stored in the output vector.
      *
      * @param year The year to search for.
-     * @param month The month to search for (1�12).
+     * @param month The month to search for (1-12).
      * @param out Output vector that will contain the matching WeatherRecord objects.
      * @return true if records are found, false otherwise.
      */
@@ -61,7 +61,7 @@ public:
      * for the specified month from each year. The results are aggregated into
      * a single output vector.
      *
-     * @param month The month to search for (1�12).
+     * @param month The month to search for (1-12).
      * @param out Output vector that will contain all matching WeatherRecord objects.
      */
     void GetMonthRecordsAcrossYears(int month, Vector<WeatherRecord>& out) const;

@@ -40,7 +40,7 @@ public:
      */
     static Vector<double> ExtractWindKmh(const Vector<WeatherRecord>& rows);
 
-    /**
+     /**
      * @brief Extracts valid ambient air temperatures from records.
      *
      * Only records with valid temperature values are included.
@@ -73,10 +73,51 @@ public:
      */
     static bool MonthHasAnyData(const Vector<WeatherRecord>& rows);
 
-    static Vector<WeatherRecord> FilterMonth(const WeatherLog& log, int month);
-
+     /**
+     * @brief Extracts Wind Speed and Ambient Temperature pairs for SPCC calculation.
+     *
+     * This function iterates through a collection of WeatherRecord objects and
+     * extracts paired values of:
+     * - Wind Speed (S)
+     * - Ambient Temperature (T)
+     *
+     * These paired datasets are stored in separate vectors and are used as inputs
+     * for the Sample Pearson Correlation Coefficient (SPCC) calculation.
+     *
+     * @param rows The collection of weather records.
+     * @param s Output vector storing wind speed values.
+     * @param t Output vector storing ambient temperature values.
+     */
     static void ExtractSTPairs(const Vector<WeatherRecord>& rows, Vector<double>& s, Vector<double>& t);
+    /**
+     * @brief Extracts Wind Speed and Solar Radiation pairs for SPCC calculation.
+     *
+     * This function processes weather records and extracts paired values of:
+     * - Wind Speed (S)
+     * - Solar Radiation (R)
+     *
+     * The extracted values are stored in separate vectors and used to compute
+     * the SPCC to determine the relationship between wind speed and solar radiation.
+     *
+     * @param rows The collection of weather records.
+     * @param s Output vector storing wind speed values.
+     * @param r Output vector storing solar radiation values.
+     */
     static void ExtractSRPairs(const Vector<WeatherRecord>& rows, Vector<double>& s, Vector<double>& r);
+    /**
+     * @brief Extracts Ambient Temperature and Solar Radiation pairs for SPCC calculation.
+     *
+     * This function iterates through weather records and extracts paired values of:
+     * - Ambient Temperature (T)
+     * - Solar Radiation (R)
+     *
+     * These paired datasets are stored in vectors and used as input for SPCC
+     * to evaluate the relationship between temperature and solar radiation.
+     *
+     * @param rows The collection of weather records.
+     * @param t Output vector storing ambient temperature values.
+     * @param r Output vector storing solar radiation values.
+     */
     static void ExtractTRPairs(const Vector<WeatherRecord>& rows, Vector<double>& t, Vector<double>& r);
 };
 

@@ -72,4 +72,3 @@ bool operator>(const Time& lhs, const Time& rhs);
 // Returns true if both times are equal
 bool operator==(const Time& lhs, const Time& rhs);
 #endif // TIME_H_INCLUDED
-
