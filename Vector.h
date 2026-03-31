@@ -1,237 +1,123 @@
 #ifndef VECTOR_H_INCLUDED
 #define VECTOR_H_INCLUDED
 #include <stdexcept> // For std::out_of_range exception
-#define INITIAL_CAPACITY 6 // Default starting capacity for the Vector
+#include <vector>
+
+using std::vector;
 /**
  * @class Vector
- * @brief A simple templated dynamic array that manages memory manually.
+ * @brief A wrapper (encapsulation) around std::vector providing controlled access.
  *
- * This class provides a minimal Vector implementation using a raw dynamic array.
- * It supports insertion, removal, indexing, resizing, and deep copying.
+ * This class encapsulates the STL vector container and exposes only selected
+ * functionalities such as insertion, removal, indexing, and size retrieval.
+ * It ensures safer operations with boundary checking and controlled interface.
  *
- * @tparam T The element type stored in the Vector.
+ * @tparam T The type of elements stored in the vector.
  */
 template <class T>
 class Vector
 {
 	public:
         /**
-     * @brief Default constructor.
-     *
-     * Creates an empty Vector with INITIAL_CAPACITY allocated.
-     */
-	    Vector();
+         * @brief Default constructor.
+         * Initializes an empty vector.
+         */
+	    Vector() {};
+
 	    /**
-     * @brief Constructs a Vector with space for n elements.
-     *
-     * Elements are default-constructed. Capacity is set to at least INITIAL_CAPACITY.
-     *
-     * @param n Number of elements to initialise.
-     */
-		Vector(int n);
-
-		 /**
-     * @brief Copy constructor (deep copy).
-     *
-     * Allocates new storage and copies elements from other.
-     *
-     * @param other Vector to copy from.
-     */
-        Vector(const Vector<T>& other);
-
-         /**
-     * @brief Assignment operator (deep copy).
-     *
-     * Replaces current contents with a deep copy of other.
-     *
-     * @param other Vector to assign from.
-     * @return Reference to this Vector.
-     */
-        Vector<T>& operator=(const Vector<T>& other);
-
-       /**
-     * @brief Destructor.
-     *
-     * Releases dynamically allocated memory.
-     */
-        ~Vector();
+         * @brief Constructor with initial size.
+         * @param n Initial number of elements.
+         */
+        Vector(int n);
         /**
-     * @brief Inserts data at position pos (0..m_size).
-     *
-     * Shifts elements to the right. May trigger resizing if capacity is full.
-     *
-     * @param data Element to insert.
-     * @param pos Index position to insert at.
-     * @return true if inserted successfully; false if pos is out of range.
-     */
+         * @brief Destructor.
+         */
+        ~Vector() {};
 
+        /**
+         * @brief Inserts an element at a specific position.
+         * @param data The element to insert.
+         * @param pos The position where the element will be inserted.
+         * @return True if insertion is successful, false otherwise.
+         */
         bool Insert(const T& data, int pos);
         /**
-        * @brief Removes element at position pos (0..m_size-1).
-        *        Shifts elements to the left.
-        * @return true if successful, false if pos out of range
-        */
+         * @brief Removes an element at a specific position.
+         * @param pos The position of the element to remove.
+         * @return True if removal is successful, false otherwise.
+         */
         bool Remove(int pos);
         /**
-     * @brief Read-only indexing operator with bounds checking.
-     *
-     * @param pos Index to access.
-     * @return Const reference to the element at pos.
-     * @throws std::out_of_range if pos is invalid.
-     */
+         * @brief Access element (read-only).
+         * @param pos Index position.
+         * @return Constant reference to the element.
+         */
         const T& operator[](int pos) const;
-        /**
-     * @brief Writable indexing operator with bounds checking.
-     *
-     * @param pos Index to access.
-     * @return Reference to the element at pos.
-     * @throws std::out_of_range if pos is invalid.
-     */
-        T& operator[] (int pos);
-       /**
-     * @brief Returns the number of elements currently stored.
-     *
-     * @return Current size of the Vector.
-     */
-        int Size() const;
          /**
-     * @brief Clears the Vector (logical clear).
-     *
-     * Sets size to 0 but keeps allocated memory for reuse.
-     */
+         * @brief Access element (modifiable).
+         * @param pos Index position.
+         * @return Reference to the element.
+         */
+        T& operator[] (const int& pos);
+        /**
+         * @brief Returns the number of elements in the vector.
+         * @return Size of the vector.
+         */
+        int Size() const;
+
+        /**
+         * @brief Clears all elements from the vector.
+         */
         void Clear();
-/**
-     * @brief Resizes internal storage to at least newCapacity.
-     *
-     * If newCapacity is not larger than current capacity, nothing changes.
-     *
-     * @param newCapacity Requested new capacity.
-     */
-        void Resize(int newCapacity);
+
 	private:
-        T * m_vec;  ///< Pointer to dynamic array storage
-        int m_capacity;  ///< Pointer to dynamic array storage
-        int m_size;   ///< Current number of stored elements
-
-
+        vector<T> m_vec; // Underlying STL vector container
 };
-
-template <class T>
-Vector<T>::Vector()
-{
-    m_size = 0; // Start with zero elements
-    m_capacity = INITIAL_CAPACITY;  // Set initial capacity
-    m_vec = new T[m_capacity];  // Allocate dynamic array of type T
-}
 
 template <class T>
 Vector<T>:: Vector(int n)
 {
-    if (n < 0) n = 0; // Defensive: prevent negative size
-
-
-    m_capacity = (n > INITIAL_CAPACITY) ? (n * 2) : INITIAL_CAPACITY; // Choose capacity
-    m_vec = new T[m_capacity];  // Allocate dynamic array of type T
-    m_size = n;    // Set size
-}
-template <class T>
-Vector<T>::Vector(const Vector<T>& other)
-{
-    m_vec = nullptr;  // Initialise pointer defensively
-    m_capacity = other.m_capacity;  // Copy capacity value
-    m_size = other.m_size;  // Copy size value
-
-    m_vec = new T[m_capacity];  // Copy size value
-    for (int i = 0; i < m_size; ++i)  // Copy each element (deep copy)
+    // Initialize vector with size n if n is non-negative
+    if (n >= 0)
     {
-        m_vec[i] = other.m_vec[i];  // Copy element i
-    }
-}
-
-template <class T>
-Vector<T>& Vector<T>::operator=(const Vector<T>& other)
-{
-    if (this == &other) return *this; // Protect against self-assignment
-
-
-    T* newArr = new T[other.m_capacity]; // Allocate new storage first
-    for (int i = 0; i < other.m_size; ++i)  // Copy elements from other
-    {
-        newArr[i] = other.m_vec[i];  // Copy element i
+         m_vec.resize(n); // Allocate n default-initialized elements
     }
 
-    delete[] m_vec;  // Copy element i
-    m_vec = newArr; // Replace with new storage
-    m_capacity = other.m_capacity;  // Copy capacity
-    m_size = other.m_size; // Copy size
-
-    return *this; // Return this object
-}
-
-template <class T>
-Vector<T>::~Vector()
-{
-    if(m_vec != nullptr) // Only delete if allocated
-    {
-        delete[] m_vec;  // Free dynamic array
-        m_vec = nullptr;  // Avoid dangling pointer
-        m_capacity = 0; // Reset capacity
-        m_size = 0;  // Reset size
-    }
-}
-
-template <class T>
-void Vector<T>::Resize(int newCapacity)
-{
-    if (newCapacity <= m_capacity) return; // Do nothing if already large enough
-    if (newCapacity < INITIAL_CAPACITY) newCapacity = INITIAL_CAPACITY; // Enforce minimum capacity
-
-    T* newArr = new T[newCapacity];  // Allocate new larger array
-    for (int i = 0; i < m_size; ++i)  // Copy old elements into new array
-    {
-        newArr[i] = m_vec[i];  // Copy element i
-    }
-
-    delete[] m_vec; // Free old storage
-    m_vec = newArr; // Point to new storage
-    m_capacity = newCapacity;  // Update capacity
 }
 
 template <class T>
 bool Vector<T>::Insert(const T& data, int pos)
 {
-    if (pos < 0 || pos > m_size) return false; // Validate insertion position
-
-    if (m_size == m_capacity) // Check if capacity is full
+    // Check for invalid position
+    if(pos < 0 || pos > Size())
     {
-
-        Resize(m_capacity * 2);  // Grow capacity
+        return false;
     }
-
-
-    for (int i = m_size; i > pos; --i) // Shift elements to the right
+    // If inserting at the end, use push_back for efficiency
+    else if(pos == Size())
     {
-        m_vec[i] = m_vec[i - 1]; // Move element right by one position
+        m_vec.push_back(data);
     }
-
-    m_vec[pos] = data; // Insert new element
-    ++m_size; // Increase size
-    return true; // Report success
+    else
+    {
+        // Insert element at specific position
+        m_vec.insert(m_vec.begin() + pos, data);
+    }
+    return true; // Insertion successfu
 }
 
 template <class T>
 bool Vector<T>::Remove(int pos)
 {
-    if (pos < 0 || pos >= m_size) return false; // Validate removal position
-
-
-    for (int i = pos; i < m_size - 1; ++i) // Shift elements to the left
+    // Check if position is valid
+    if (pos < 0 || pos >= Size())
     {
-        m_vec[i] = m_vec[i + 1]; // Move next element left
+         return false;
     }
+    // Remove element at specified position
+    m_vec.erase(m_vec.begin() + pos);
 
-    --m_size;  // Decrease size
-    return true; // Report success
+    return true; // Removal successful
 }
 
 
@@ -239,30 +125,46 @@ bool Vector<T>::Remove(int pos)
 template <class T>
 const T& Vector<T>::operator[](int pos) const
 {
-    if (pos < 0 || pos >= m_size)  // Validate bounds
-        throw std::out_of_range("Vector: index out of range"); // Throw exception if invalid
-    return m_vec[pos];  // Return const reference to element
+    // Check bounds before accessing
+    if (pos < 0 || pos >= Size())
+        throw std::out_of_range("Vector: index out of range");
+    // Return element (read-only)
+    return m_vec[pos];
 }
 
 template <class T>
-T& Vector<T>::operator[](int pos)
+T& Vector<T>::operator[](const int& pos)
 {
-    if (pos < 0 || pos >= m_size) // Validate bounds
-        throw std::out_of_range("Vector: index out of range"); // Throw exception if invalid
-    return m_vec[pos];   // Return reference to element
+    // Check bounds before accessing
+    if (pos < 0 || pos >= Size())
+        throw std::out_of_range("Vector: index out of range");
+
+    // Return element (modifiable)
+    return m_vec[pos];
 }
 
 template <class T>
 int Vector<T>::Size() const
 {
-    return m_size; // Return number of stored elements
+    // Return current number of elements
+    return m_vec.size();
 }
 
 template <class T>
 void Vector<T>::Clear()
 {
-    m_size = 0;  // Reset logical size
+    // Remove all elements from the vector
+    m_vec.clear();
 }
+
+
+
+
+#endif // VECTOR_H_INCLUDED
+
+
+
+
 
 
 

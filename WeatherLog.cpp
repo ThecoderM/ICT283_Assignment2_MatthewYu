@@ -137,7 +137,16 @@ bool WeatherLog::LoadData(const string& sourceFilename) // Load records using da
             if (hasTemp)  rec.setAmbientAirTemperature(Temp);    // Only set temperature if valid
             if (hasSR)    rec.setSolarRadiation(SR);             // Only set solar radiation if valid
 
-            m_data.Insert(rec, m_data.Size()); // Append record to end of vector
+            int year = d.GetYear();
+            int month = d.GetMonth();
+
+            if (!m_dataByYearMonth.Contains(year))
+            {
+                m_dataByYearMonth[year];
+                m_yearIndex.Insert(year);
+            }
+
+            m_dataByYearMonth[year][month].Insert(rec); // Append record to end of vector
         }
 
         fin.close();               // Close current CSV file
