@@ -50,99 +50,102 @@ bool WeatherLog::LoadData(const string& sourceFilename) // Load records using da
     string sourcePath = "data/" + sourceFilename; // Build path to data_source.txt under data folder
 
     ifstream source(sourcePath); // Open the data_source.txt file
-    if (!source)                        // Check if the file opened successfully
-        return false;                   // Return false if file cannot be opened
+    if (!source)                 // Check if the file opened successfully
+        return false;            // Return false if file cannot be opened
 
-    string csvName;                     // Store the CSV filename read from data_source.txt
-    while (getline(source, csvName))    // Read lines until a valid filename is found
+    string csvName;              // Store each CSV filename read from data_source.txt
+    bool loadedAnyFile = false;  // Track whether at least one CSV file was processed
+
+    while (getline(source, csvName)) // Read every filename listed in data_source.txt
     {
-        csvName = Trim(csvName);        // Trim whitespace
-        if (csvName != "")              // Stop once a non-empty line is found
-            break;                      // Exit loop when filename is obtained
+        csvName = Trim(csvName);     // Trim whitespace
+
+        if (csvName == "")           // Skip blank lines
+            continue;
+
+        string csvPath = csvName;    // Default: assume csvName already contains a path
+
+        bool hasSlash = (csvName.find('/') != std::string::npos) ||
+                        (csvName.find('\\') != std::string::npos); // Check if name already contains a folder separator
+
+        if (!hasSlash)               // If no folder separator is present
+            csvPath = "data/" + csvName; // Force CSV file to be loaded from data/ folder
+
+        ifstream fin(csvPath);       // Open the actual CSV file
+        if (!fin)
+            return false;
+
+        string headerLine;           // Store header row
+        if (!getline(fin, headerLine)) // Read first line (header)
+            return false;             // Fail if header cannot be read
+
+        const int MAX_FIELDS = 256;   // Define max number of CSV fields supported
+        string headerFields[MAX_FIELDS]; // Array to store header field names
+        int headerCount = 0;          // Number of header fields extracted
+
+        if (!SplitCSVLine(headerLine, headerFields, MAX_FIELDS, headerCount)) // Split header into fields
+            return false;
+
+        // Find required columns
+        int idxWAST = FindColumnIndex(headerFields, headerCount, "WAST");
+        int idxS    = FindColumnIndex(headerFields, headerCount, "S");
+        int idxT    = FindColumnIndex(headerFields, headerCount, "T");
+        int idxSR   = FindColumnIndex(headerFields, headerCount, "SR");
+
+        if (idxWAST < 0 || idxS < 0 || idxT < 0 || idxSR < 0) // Ensure all required columns exist
+            return false;
+
+        string line;                 // Holds each CSV data row
+        string fields[MAX_FIELDS];   // Holds parsed fields for each row
+        int count = 0;               // Number of parsed fields for each row
+
+        while (getline(fin, line))   // Read each data row
+        {
+            if (Trim(line) == "")    // Skip blank lines
+                continue;
+
+            if (!SplitCSVLine(line, fields, MAX_FIELDS, count)) // Split row into fields
+                continue;            // Skip malformed lines
+
+            // Determine the largest required index for safety
+            int maxIndex = idxWAST;
+            if (idxS > maxIndex)  maxIndex = idxS;
+            if (idxT > maxIndex)  maxIndex = idxT;
+            if (idxSR > maxIndex) maxIndex = idxSR;
+
+            if (count <= maxIndex) // Skip incomplete rows
+                continue;
+
+            Date d;                // Date object to store parsed date
+            Time t;                // Time object to store parsed time
+            if (!ParseWAST(fields[idxWAST], d, t)) // Parse WAST timestamp into Date and Time
+                continue;          // Skip row if timestamp parsing fails
+
+            float speed = 0.0f;    // Parsed wind speed value
+            float Temp  = 0.0f;    // Parsed temperature value
+            float SR    = 0.0f;    // Parsed solar radiation value
+
+            bool hasSpeed = TryParseFloat(fields[idxS], speed); // Try parse wind speed field
+            bool hasTemp  = TryParseFloat(fields[idxT], Temp);  // Try parse temperature field
+            bool hasSR    = TryParseFloat(fields[idxSR], SR);   // Try parse solar radiation field
+
+            WeatherRecord rec;     // Create a weather record
+            rec.SetDate(d);        // Store parsed Date into record
+            rec.SetTime(t);        // Store parsed Time into record
+
+            if (hasSpeed) rec.SetSpeed(speed);                   // Only set speed if parsed successfully
+            if (hasTemp)  rec.setAmbientAirTemperature(Temp);    // Only set temperature if valid
+            if (hasSR)    rec.setSolarRadiation(SR);             // Only set solar radiation if valid
+
+            m_data.Insert(rec, m_data.Size()); // Append record to end of vector
+        }
+
+        fin.close();               // Close current CSV file
+        loadedAnyFile = true;      // Mark that at least one file was processed
     }
-    source.close();                     // Close the data_source.txt file
 
-    if (csvName == "")                  // If no CSV filename was found
-        return false;                   // Fail loading process
-
-
-    string csvPath = csvName;           // Default: assume csvName already contains a path
-
-    bool hasSlash = (csvName.find('/') != std::string::npos) || (csvName.find('\\') != std::string::npos); // Check if name already contains a folder separator
-    if (!hasSlash)                      // If no folder separator is present
-        csvPath = "data/" + csvName;    // Force CSV file to be loaded from data/ folder
-
-    ifstream fin(csvPath);      // Open the actual CSV file
-    if (!fin)
-        return false;
-
-
-    string headerLine;                  // Store header row
-    if (!getline(fin, headerLine))      // Read first line (header)
-        return false;                   // Fail if header cannot be read
-
-    const int MAX_FIELDS = 256;         // Define max number of CSV fields supported
-    string headerFields[MAX_FIELDS];    // Array to store header field names
-    int headerCount = 0;                // Number of header fields extracted
-
-    if (!SplitCSVLine(headerLine, headerFields, MAX_FIELDS, headerCount)) // Split header into fields
-        return false;
-
-    // Find required columns
-    int idxWAST = FindColumnIndex(headerFields, headerCount, "WAST");
-    int idxS    = FindColumnIndex(headerFields, headerCount, "S");
-    int idxT    = FindColumnIndex(headerFields, headerCount, "T");
-    int idxSR   = FindColumnIndex(headerFields, headerCount, "SR");
-
-    if (idxWAST < 0 || idxS < 0 || idxT < 0 || idxSR < 0)  // Ensure all required columns exist
-        return false;
-
-
-    string line;    // Holds each CSV data row
-    string fields[MAX_FIELDS]; // Holds parsed fields for each row
-    int count = 0; // Holds parsed fields for each row
-
-    while (getline(fin, line)) // Read each data row
-    {
-        if (Trim(line) == "") // Read each data row
-            continue; // Move to next row
-
-        if (!SplitCSVLine(line, fields, MAX_FIELDS, count)) // Split row into fields store them in fields
-            continue; // Skip malformed lines
-
-        int maxIndex = (idxWAST > idxS) ? idxWAST : idxS; // Determine minimum required index for safety
-        if (count <= maxIndex) // Determine minimum required index for safety
-            continue; // Skip incomplete rows
-
-
-        Date d; // Date object to store parsed date
-        Time t; // Time object to store parsed time
-        if (!ParseWAST(fields[idxWAST], d, t)) // Parse WAST timestamp into Date and Time
-            continue;       // Skip row if timestamp parsing fails
-
-
-        float speed = 0.0f; // Parsed wind speed value
-        float Temp = 0.0f; // Parsed temperature value
-        float SR = 0.0f;   // Parsed solar radiation value
-        bool hasSpeed = TryParseFloat(fields[idxS], speed); // Try parse wind speed field
-        bool hasTemp  = TryParseFloat(fields[idxT], Temp);  // Try parse temperature field
-        bool hasSR    = TryParseFloat(fields[idxSR], SR);   // Try parse solar radiation field
-
-
-
-
-        WeatherRecord rec; // Try parse solar radiation field
-        rec.SetDate(d);    // Store parsed Date into record
-        rec.SetTime(t);    // Store parsed Time into record
-        if (hasSpeed) rec.SetSpeed(speed);  // Only set speed if parsed successfully
-        if (hasTemp)  rec.setAmbientAirTemperature(Temp); // Only set temperature if valid
-        if (hasSR)    rec.setSolarRadiation(SR); // Only set solar radiation if valid
-
-        m_data.Insert(rec, m_data.Size()); // Append record
-    }
-
-    fin.close(); // Close the CSV file
-    return true; // Close the CSV file
+    source.close();                // Close data_source.txt
+    return loadedAnyFile;          // Return true only if at least one file was loaded
 }
 
 bool WeatherLog::SplitCSVLine(const string& line, string fields[], int maxFields, int& count) const // Split CSV line into tokens

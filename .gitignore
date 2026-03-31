@@ -9,3 +9,6 @@
 .vs/
 bin/
 obj/
+
+data/
+*.depend
