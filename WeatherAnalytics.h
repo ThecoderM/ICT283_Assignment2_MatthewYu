@@ -24,7 +24,7 @@ public:
      * @brief Filters weather records by month and year.
      *
      * @param log WeatherLog containing all records.
-     * @param month Month value (1–12).
+     * @param month Month value (1ï¿½12).
      * @param year Year value (e.g., 2016).
      * @return Vector of WeatherRecord objects matching the specified month and year.
      */
@@ -72,6 +72,12 @@ public:
      * @return true if any data exists; otherwise false.
      */
     static bool MonthHasAnyData(const Vector<WeatherRecord>& rows);
+
+    static Vector<WeatherRecord> FilterMonth(const WeatherLog& log, int month);
+
+    static void ExtractSTPairs(const Vector<WeatherRecord>& rows, Vector<double>& s, Vector<double>& t);
+    static void ExtractSRPairs(const Vector<WeatherRecord>& rows, Vector<double>& s, Vector<double>& r);
+    static void ExtractTRPairs(const Vector<WeatherRecord>& rows, Vector<double>& t, Vector<double>& r);
 };
 
 #endif // WEATHERANALYTICS_H_INCLUDED

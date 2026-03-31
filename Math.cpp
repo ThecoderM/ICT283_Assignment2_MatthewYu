@@ -36,3 +36,54 @@ double Math::SolarWm2_10min_To_kWhm2(double sr_wm2) // Convert solar radiation t
     return (sr_wm2 / 6.0) / 1000.0;  // Convert 10-minute W/m^2 reading to kWh/m^2
 }                                    // Divide by 6 (10 minutes = 1/6 hour)
                                      // Divide by 1000 (W to kW conversion)
+
+
+double Math::SPCC(const Vector<double>& x, const Vector<double>& y)
+{
+    int n = x.Size();
+
+    if (n < 2 || y.Size() != n)
+        return 0.0;
+
+    double meanX = Mean(x);
+    double meanY = Mean(y);
+
+    double sumXY = 0.0;
+    double sumX2 = 0.0;
+    double sumY2 = 0.0;
+
+    for (int i = 0; i < n; i++)
+    {
+        double dx = x[i] - meanX;
+        double dy = y[i] - meanY;
+
+        sumXY += dx * dy;
+        sumX2 += dx * dx;
+        sumY2 += dy * dy;
+    }
+
+    if (sumX2 == 0.0 || sumY2 == 0.0)
+        return 0.0;
+
+    return sumXY / std::sqrt(sumX2 * sumY2);
+}
+
+double Math::MeanAbsoluteDeviation(const Vector<double>& values, double mean)
+{
+    if (values.Size() == 0)
+        return 0.0;
+
+    double sum = 0.0;
+
+    for (int i = 0; i < values.Size(); i++)
+    {
+        double diff = values[i] - mean;
+
+        if (diff < 0)
+            diff = -diff; // absolute value
+
+        sum += diff;
+    }
+
+    return sum / values.Size();
+}

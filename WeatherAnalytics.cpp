@@ -60,3 +60,56 @@ bool WeatherAnalytics::MonthHasAnyData(const Vector<WeatherRecord>& rows)
     }
     return false; // No values exist for this month
 }
+
+Vector<WeatherRecord> WeatherAnalytics::FilterMonth(const WeatherLog& log, int month)
+{
+    Vector<WeatherRecord> out;
+
+    for (int i = 0; i < log.Size(); i++)
+    {
+        WeatherRecord r = log.GetAt(i);
+
+        if (r.GetDate().GetMonth() == month)
+            out.Insert(r, out.Size());
+    }
+
+    return out;
+}
+
+void WeatherAnalytics::ExtractSTPairs(const Vector<WeatherRecord>& rows, Vector<double>& s, Vector<double>& t)
+{
+    for (int i = 0; i < rows.Size(); i++)
+    {
+        if (rows[i].GetHasSpeed() && rows[i].GetHasAmbientAirTemperature())
+        {
+            s.Insert(Math::MsToKmh(rows[i].GetSpeed()), s.Size());
+            t.Insert(rows[i].GetAmbientAirTemperature(), t.Size());
+        }
+    }
+}
+
+void WeatherAnalytics::ExtractSRPairs(const Vector<WeatherRecord>& rows, Vector<double>& s, Vector<double>& r)
+{
+    for (int i = 0; i < rows.Size(); i++)
+    {
+        if (rows[i].GetHasSpeed() && rows[i].GetHasSolarRadiation())
+        {
+            s.Insert(Math::MsToKmh(rows[i].GetSpeed()), s.Size());
+            r.Insert(rows[i].GetSolarRadiation(), r.Size());
+        }
+    }
+}
+
+void WeatherAnalytics::ExtractTRPairs(const Vector<WeatherRecord>& rows, Vector<double>& t, Vector<double>& r)
+{
+    for (int i = 0; i < rows.Size(); i++)
+    {
+        if (rows[i].GetHasAmbientAirTemperature() && rows[i].GetHasSolarRadiation())
+        {
+            t.Insert(rows[i].GetAmbientAirTemperature(), t.Size());
+            r.Insert(rows[i].GetSolarRadiation(), r.Size());
+        }
+    }
+}
+
+

@@ -49,11 +49,11 @@ public:
      */
     static double SampleStdDev(const Vector<double>& values, double mean);
     /**
-     * @brief Converts solar radiation from W/m² (10-minute interval)
-     *        into kWh/m².
+     * @brief Converts solar radiation from W/mï¿½ (10-minute interval)
+     *        into kWh/mï¿½.
      *
-     * @param sr_wm2 Solar radiation value in W/m².
-     * @return Converted value in kWh/m².
+     * @param sr_wm2 Solar radiation value in W/mï¿½.
+     * @return Converted value in kWh/mï¿½.
      *
      * The conversion accounts for the 10-minute measurement interval.
      */
@@ -68,6 +68,9 @@ public:
      *
      * Used to avoid floating-point precision issues.
      */
+     static double SPCC(const Vector<double>& x, const Vector<double>& y);
+
+     static double MeanAbsoluteDeviation(const Vector<double>& values, double mean);
 };
 
 #endif // MATH_H_INCLUDED

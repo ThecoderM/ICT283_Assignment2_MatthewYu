@@ -169,6 +169,6 @@ void Vector<T>::Clear()
 
 
 
-#endif // VECTOR_H_INCLUDED
+
 
 

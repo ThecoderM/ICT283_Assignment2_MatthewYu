@@ -28,9 +28,9 @@ public:
     /**
      * @brief Returns the month name corresponding to an integer value.
      *
-     * Converts a numeric month (1–12) into its textual name.
+     * Converts a numeric month (1ï¿½12) into its textual name.
      *
-     * @param m Integer month value (1–12).
+     * @param m Integer month value (1ï¿½12).
      * @return const char* Name of the month, or empty string if invalid.
      */
     static const char* MonthName(int m);
@@ -69,7 +69,7 @@ public:
      * @brief Executes menu option 3.
      *
      * Calculates and displays the total solar radiation
-     * (kWh/m²) per month for a specified year.
+     * (kWh/m) per month for a specified year.
      *
      * @param log The loaded WeatherLog containing weather records.
      */
