@@ -1,25 +1,17 @@
 #include "WeatherAnalytics.h"
 #include "Math.h"
 
-Vector<WeatherRecord> WeatherAnalytics::FilterMonthYear(const WeatherLog& log, int month, int year)
-{
-    Vector<WeatherRecord> out; // Output vector for matching records
-    for (int i = 0; i < log.Size(); i++) // Loop through all records in the log
-    {
-        WeatherRecord r = log.GetAt(i); // Retrieve record at index i
-        if (r.GetDate().GetMonth() == month && r.GetDate().GetYear() == year) // Match month and year
-            out.Insert(r, out.Size()); // Append matching record
-    }
-    return out;  // Return filtered records
-}
-
 Vector<double> WeatherAnalytics::ExtractWindKmh(const Vector<WeatherRecord>& rows)
 {
-    Vector<double> v;   // Store wind values in km/h
-    for (int i = 0; i < rows.Size(); i++) // Store wind values in km/h
-        if (rows[i].GetHasSpeed())  // Only include records with valid speed
+    Vector<double> v; // Store wind values in km/h
+
+    for (int i = 0; i < rows.Size(); i++)
+    {
+        if (rows[i].GetHasSpeed()) // Only include records with valid speed
             v.Insert(Math::MsToKmh(rows[i].GetSpeed()), v.Size()); // Convert m/s to km/h and append
-    return v; // Return wind vector
+    }
+
+    return v;
 }
 
 Vector<double> WeatherAnalytics::ExtractTempC(const Vector<WeatherRecord>& rows)
@@ -61,28 +53,17 @@ bool WeatherAnalytics::MonthHasAnyData(const Vector<WeatherRecord>& rows)
     return false; // No values exist for this month
 }
 
-Vector<WeatherRecord> WeatherAnalytics::FilterMonth(const WeatherLog& log, int month)
-{
-    Vector<WeatherRecord> out;
-
-    for (int i = 0; i < log.Size(); i++)
-    {
-        WeatherRecord r = log.GetAt(i);
-
-        if (r.GetDate().GetMonth() == month)
-            out.Insert(r, out.Size());
-    }
-
-    return out;
-}
-
 void WeatherAnalytics::ExtractSTPairs(const Vector<WeatherRecord>& rows, Vector<double>& s, Vector<double>& t)
 {
+    // Loop through all weather records
     for (int i = 0; i < rows.Size(); i++)
     {
+        // Check if both wind speed and temperature are available in the record
         if (rows[i].GetHasSpeed() && rows[i].GetHasAmbientAirTemperature())
         {
+            // Insert converted wind speed (m/s to km/h) into vector 's'
             s.Insert(Math::MsToKmh(rows[i].GetSpeed()), s.Size());
+            // Insert ambient temperature into vector 't'
             t.Insert(rows[i].GetAmbientAirTemperature(), t.Size());
         }
     }
@@ -90,11 +71,15 @@ void WeatherAnalytics::ExtractSTPairs(const Vector<WeatherRecord>& rows, Vector<
 
 void WeatherAnalytics::ExtractSRPairs(const Vector<WeatherRecord>& rows, Vector<double>& s, Vector<double>& r)
 {
+    // Loop through all weather records
     for (int i = 0; i < rows.Size(); i++)
     {
+        // Check if both wind speed and solar radiation are available
         if (rows[i].GetHasSpeed() && rows[i].GetHasSolarRadiation())
         {
+            // Insert converted wind speed into vector 's'
             s.Insert(Math::MsToKmh(rows[i].GetSpeed()), s.Size());
+            // Insert solar radiation value into vector 'r'
             r.Insert(rows[i].GetSolarRadiation(), r.Size());
         }
     }
@@ -102,11 +87,15 @@ void WeatherAnalytics::ExtractSRPairs(const Vector<WeatherRecord>& rows, Vector<
 
 void WeatherAnalytics::ExtractTRPairs(const Vector<WeatherRecord>& rows, Vector<double>& t, Vector<double>& r)
 {
+    // Loop through all weather records
     for (int i = 0; i < rows.Size(); i++)
     {
+        // Check if both temperature and solar radiation are available
         if (rows[i].GetHasAmbientAirTemperature() && rows[i].GetHasSolarRadiation())
         {
+            // Insert ambient temperature into vector 't'
             t.Insert(rows[i].GetAmbientAirTemperature(), t.Size());
+            // Insert solar radiation into vector 'r'
             r.Insert(rows[i].GetSolarRadiation(), r.Size());
         }
     }

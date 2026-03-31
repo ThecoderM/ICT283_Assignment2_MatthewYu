@@ -63,9 +63,13 @@ void UserInterface::Choice_One(const WeatherLog& log)
     int month, year; // Store month and year inputs
     ReadIntInRange("Enter month (1-12): ", month, 1, 12); // Validate month
     ReadIntInRange("Enter year: ", year, 0, 9999); // Validate year
+    // Create a vector to store weather records for the selected year and month
+    Vector<WeatherRecord> rows;
 
-    Vector<WeatherRecord> rows = WeatherAnalytics::FilterMonthYear(log, month, year); // Filter matching records
-    Vector<double> wind = WeatherAnalytics::ExtractWindKmh(rows); // Extract wind values (km/h)
+    // Retrieve all records matching the specified year and month from the WeatherLog
+    log.GetMonthYearRecords(year, month, rows);
+    // Extract wind speed values (in km/h) from the retrieved records
+    Vector<double> wind = WeatherAnalytics::ExtractWindKmh(rows);
 
     cout << MonthName(month) << " " << year << ":"; // Print heading for output
 
@@ -92,8 +96,12 @@ void UserInterface::Choice_Two(const WeatherLog& log)
 
     for (int m = 1; m <= 12; m++)  // Loop through all months
     {
-        Vector<WeatherRecord> rows = WeatherAnalytics::FilterMonthYear(log, m, year); // Filter month/year records
-        Vector<double> temps = WeatherAnalytics::ExtractTempC(rows); // Extract valid temperature values
+        // Create a vector to store weather records for the selected year and month
+        Vector<WeatherRecord> rows;
+        // Retrieve all records for the given year and month from the WeatherLog
+        log.GetMonthYearRecords(year, m, rows);
+        // Extract ambient temperature values (in Celsius) from the retrieved records
+        Vector<double> temps = WeatherAnalytics::ExtractTempC(rows);
 
         cout << MonthName(m) << ": "; // Print month label
 
@@ -114,31 +122,39 @@ void UserInterface::Choice_Two(const WeatherLog& log)
 
 void UserInterface::Choice_Three(const WeatherLog& log)
 {
+    // Variable to store user input for month
     int month;
+    // Prompt user to enter a valid month (1 to 12)
     ReadIntInRange("Enter month (1-12): ", month, 1, 12);
+    // Vector to store all weather records for the selected month across all years
+    Vector<WeatherRecord> rows;
+    // Retrieve all records for the given month across different years
+    log.GetMonthRecordsAcrossYears(month, rows);
+    // Vectors to store paired data for SPCC calculations
+    // s = solar radiation, t = temperature, r = wind speed
+    Vector<double> s1, t1; // Solar vs Temperature
+    Vector<double> s2, r2; // Solar vs Wind
+    Vector<double> t3, r3; // Temperature vs Wind
 
-    Vector<WeatherRecord> rows = WeatherAnalytics::FilterMonth(log, month);
+    // Extract paired values from records for correlation calculations
+    WeatherAnalytics::ExtractSTPairs(rows, s1, t1); // Solar & Temperature
+    WeatherAnalytics::ExtractSRPairs(rows, s2, r2); // Solar & Temperature
+    WeatherAnalytics::ExtractTRPairs(rows, t3, r3); // Temperature & Wind
 
-    Vector<double> s1, t1;
-    Vector<double> s2, r2;
-    Vector<double> t3, r3;
-
-    WeatherAnalytics::ExtractSTPairs(rows, s1, t1);
-    WeatherAnalytics::ExtractSRPairs(rows, s2, r2);
-    WeatherAnalytics::ExtractTRPairs(rows, t3, r3);
-
+     // Display header for SPCC results
     cout << "Sample Pearson Correlation Coefficient for " << MonthName(month) << "\n";
-
+    // Calculate and display SPCC for Solar vs Temperature
+    // Requires at least 2 data points
     if (s1.Size() >= 2)
         cout << "S_T: " << fixed << setprecision(1) << Math::SPCC(s1, t1) << "\n";
     else
         cout << "S_T: No Data\n";
-
+    // Calculate and display SPCC for Solar vs Wind
     if (s2.Size() >= 2)
         cout << "S_R: " << fixed << setprecision(1) << Math::SPCC(s2, r2) << "\n";
     else
         cout << "S_R: No Data\n";
-
+    // Calculate and display SPCC for Temperature vs Wind
     if (t3.Size() >= 2)
         cout << "T_R: " << fixed << setprecision(1) << Math::SPCC(t3, r3) << "\n";
     else
@@ -163,7 +179,10 @@ void UserInterface::Choice_Four(const WeatherLog& log)
 
     for (int m = 1; m <= 12; m++) // Loop through months
     {
-        Vector<WeatherRecord> rows = WeatherAnalytics::FilterMonthYear(log, m, year); // Filter records for month/year
+        // Create a vector to store weather records for the specified year and month
+        Vector<WeatherRecord> rows;
+        // Retrieve all matching records from the WeatherLog and store them in 'rows'
+        log.GetMonthYearRecords(year, m, rows);
 
 
         if (!WeatherAnalytics::MonthHasAnyData(rows)) // skip month if no data at all
