@@ -30,20 +30,66 @@ WeatherLog::WeatherLog() // Default constructor
     // m_data initialises itself automatically
 }
 
-int WeatherLog::Size() const // Return number of stored records
+bool WeatherLog::HasYear(int year) const
 {
-    return m_data.Size(); // Delegate to Vector<WeatherRecord>::Size()
+    // Check if the given year exists as a key in the map (m_dataByYearMonth)
+    // Returns true if the year is present, otherwise false
+    return m_dataByYearMonth.Contains(year);
 }
 
-WeatherRecord WeatherLog::GetAt(int index) const // Return record at a given index
+bool WeatherLog::GetMonthYearRecords(int year, int month, Vector<WeatherRecord>& out) const
 {
-    return m_data[index]; // Use Vector indexing operator (with bounds check)
+    out.Clear(); // Clear the output vector
+    // Look for the given year in the outer map and stores the address of the inner map.
+    const Map<int, Bst<WeatherRecord> >* monthsInYear = m_dataByYearMonth.Find(year);
+    if (monthsInYear == nullptr)
+        return false;
+    // Next find the given month inside the map of that year.
+    // If found it will return a pointer to the BST of weather Records for that month and year.
+    const Bst<WeatherRecord>* monthTree = monthsInYear->Find(month);
+    if (monthTree == nullptr)
+        return false;
+    // Store all the weather Records for that month and year into a vector as a temporary storage.
+    monthTree->ToVector(out);
+    // Return true if records from the bst are stored into the temporary vector storage.
+    // else return false.
+    return out.Size() > 0;
 }
 
-const Vector<WeatherRecord>& WeatherLog::GetData() const // Read-only access to internal vector
+
+void WeatherLog::GetMonthRecordsAcrossYears(int month, Vector<WeatherRecord>& out) const
 {
-    return m_data; // Return const reference to internal storage
+    out.Clear(); // Clear the output vector
+
+    Vector<int> years;
+    m_yearIndex.ToVector(years);  // Retrive all the loaded years stored
+                                  // in the m_yearIndex bst and store the years temporarily in a vector of years.
+
+    for (int i = 0; i < years.Size(); i++) // loop through every loaded year
+    {
+        int year = years[i];
+        // Find the year in the outer map
+        const Map<int, Bst<WeatherRecord> >* monthsInYear = m_dataByYearMonth.Find(year);
+        if (monthsInYear == nullptr)
+            continue;
+        // Next find the given month inside the map of that year.
+        // This checks whether the current year contains that month.
+        // If the month is missing skip that year and continue.
+        const Bst<WeatherRecord>* monthTree = monthsInYear->Find(month);
+        if (monthTree == nullptr)
+            continue;
+
+        Vector<WeatherRecord> monthRows;
+        // Store all the weather Records for that month and year into a vector called monthRows as a temporary storage.
+        monthTree->ToVector(monthRows);
+        // Append all the records for that month across all the loaded years into the final output vector
+        for (int j = 0; j < monthRows.Size(); j++)
+        {
+            out.Insert(monthRows[j], out.Size());
+        }
+    }
 }
+
 
 bool WeatherLog::LoadData(const string& sourceFilename) // Load records using data_source.txt file
 {
@@ -137,7 +183,16 @@ bool WeatherLog::LoadData(const string& sourceFilename) // Load records using da
             if (hasTemp)  rec.setAmbientAirTemperature(Temp);    // Only set temperature if valid
             if (hasSR)    rec.setSolarRadiation(SR);             // Only set solar radiation if valid
 
-            m_data.Insert(rec, m_data.Size()); // Append record to end of vector
+            int year = d.GetYear();
+            int month = d.GetMonth();
+
+            if (!m_dataByYearMonth.Contains(year))
+            {
+                m_dataByYearMonth[year];
+                m_yearIndex.Insert(year);
+            }
+
+            m_dataByYearMonth[year][month].Insert(rec); // Append record to end of vector
         }
 
         fin.close();               // Close current CSV file
