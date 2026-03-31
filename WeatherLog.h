@@ -6,6 +6,8 @@
 #include "WeatherRecord.h" // WeatherRecord model class
 #include "Date.h" // Date model class
 #include "Time.h"// Time model class
+#include "Bst.h" // Binary Search Tree
+#include "Map.h" // wrapped map class
 using std::string; // Use string without std:: prefix
 /**
  * @class WeatherLog
@@ -30,8 +32,7 @@ public:
      * Creates an empty WeatherLog with no records loaded.
      */
     WeatherLog();
-
-    /**
+     /**
      * @brief Loads weather data records from a specified CSV file.
      *
      * Reads the file, parses required columns (e.g., WAST, S, T, SR),
@@ -41,32 +42,64 @@ public:
      * @return true if the file was opened and processed successfully; otherwise false.
      */
     bool LoadData(const string& filename);
-
     /**
-     * @brief Returns the number of records currently stored.
+     * @brief Retrieves weather records for a specific month and year.
      *
-     * @return Number of WeatherRecord entries in the log.
-     */
-    int Size() const;
-     /**
-     * @brief Returns the WeatherRecord at the specified index.
+     * This function searches the internal data structure using the given year and month.
+     * If records exist, they are extracted from the BST and stored in the output vector.
      *
-     * @param index Index of record to access (0..Size()-1).
-     * @return A copy of the WeatherRecord stored at index.
+     * @param year The year to search for.
+     * @param month The month to search for (1�12).
+     * @param out Output vector that will contain the matching WeatherRecord objects.
+     * @return true if records are found, false otherwise.
      */
-    WeatherRecord GetAt(int index) const;
-
+    bool GetMonthYearRecords(int year, int month, Vector<WeatherRecord>& out) const;
     /**
-     * @brief Provides read-only access to the internal record storage.
+     * @brief Retrieves weather records for a specific month across all years.
      *
-     * This is useful for iterating through all records without allowing modification.
+     * This function iterates through all available years and collects records
+     * for the specified month from each year. The results are aggregated into
+     * a single output vector.
      *
-     * @return Const reference to the Vector containing all WeatherRecord entries.
+     * @param month The month to search for (1�12).
+     * @param out Output vector that will contain all matching WeatherRecord objects.
      */
-    const Vector<WeatherRecord>& GetData() const;
+    void GetMonthRecordsAcrossYears(int month, Vector<WeatherRecord>& out) const;
+    /**
+     * @brief Checks whether a specific year exists in the dataset.
+     *
+     * This function verifies if the given year is present in the internal
+     * year index structure.
+     *
+     * @param year The year to check.
+     * @return true if the year exists, false otherwise.
+     */
+    bool HasYear(int year) const;
 
 private:
-    Vector<WeatherRecord> m_data; ///< Stores all loaded weather records
+    /**
+     * @brief Nested data structure storing weather records organized by year and month.
+     *
+     * Structure:
+     * - First level key   : Year (int)
+     * - Second level key  : Month (int)
+     * - Value             : BST of WeatherRecord objects
+     *
+     * This allows efficient retrieval of records by:
+     * - Specific year and month
+     * - Month across multiple years
+     *
+     * BST is used to maintain sorted order of records within each month.
+     */
+    Map<int, Map<int, Bst<WeatherRecord>>> m_dataByYearMonth;
+    /**
+     * @brief Index of available years stored as a BST.
+     *
+     * This structure keeps track of all years present in the dataset.
+     * It enables efficient traversal and retrieval of all years when
+     * aggregating data across multiple years.
+     */
+    Bst<int> m_yearIndex;
 
     /**
      * @brief Splits a CSV line into fields.
@@ -80,7 +113,8 @@ private:
      * @return true if parsing completed; otherwise false.
      */
     bool SplitCSVLine(const string& line, string fields[], int maxFields, int& count) const;
-    /**
+
+     /**
      * @brief Finds the index of a named column in the CSV header row.
      *
      * @param headerFields Array containing header names.
