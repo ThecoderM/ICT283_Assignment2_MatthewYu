@@ -1,290 +1,411 @@
 #ifndef BST_H_INCLUDED
 #define BST_H_INCLUDED
+#include "Vector.h"
 
-#include <iostream>
-using std::cout;
 /**
- * @struct Node
- * @brief A basic unit of the Binary Search Tree.
- * @tparam T The type of data stored in the node.
+ * @brief Visitor helper function that inserts visited BST data into a Vector.
+ *
+ * @tparam T The data type stored in the BST.
+ * @param data The current node data being visited.
+ * @param out The output vector that receives the visited data.
  */
-template <class T>
-struct Node
+template <class T> // Begin template for generic data type T
+void InsertIntoVector(T& data, Vector<T>& out) // Define helper function matching Visitor signature
 {
-    T data; ///< The value held by the node.
-    Node<T> *left; ///< Pointer to the left child (smaller values).
-    Node<T> *right; ///< Pointer to the right child (larger values).
+    // Insert current node data into the vector at the end
+    out.Insert(data, out.Size());
+}
+/**
+ * @brief Represents a single node in the Binary Search Tree.
+ *
+ * @tparam T The data type stored in the node.
+ */
+template <class T>  // Begin template for generic node data type T
+struct Node         // Define BST node structure
+{
+    T data; // Data stored in the node
+    Node<T> *left;   // Pointer to left child
+    Node<T> *right;  // Pointer to right child
 };
 /**
- * @class Bst
- * @brief A template-based Binary Search Tree implementation.
- * * This class provides standard BST operations including insertion,
- * searching, and various traversal methods.
+ * @brief A reusable Binary Search Tree template class.
+ *
+ * Stores values in sorted order based on comparison operators.
+ * Supports insertion, searching, tree traversal using function pointers,
+ * deep copying, destruction, and conversion of tree contents into a Vector.
+ *
+ * @tparam T The data type stored in the BST.
  */
 template <class T>
 class Bst
 {
 public:
     /**
-     * @brief Construct a new Bst object.
-     * Initializes the root to nullptr.
+     * @brief Function pointer type used during traversal.
+     *
+     * The visitor receives:
+     * - the current node data
+     * - a Vector used as an output/working container
+     */
+    typedef void (*Visitor)(T &, Vector<T>&);
+     /**
+     * @brief Default constructor.
+     *
+     * Creates an empty BST with a null root.
      */
     Bst();
     /**
-     * @brief Destroy the Bst object.
-     * Invokes DeleteTree to ensure all heap memory is freed.
+     * @brief Copy constructor.
+     *
+     * Creates a deep copy of another BST.
+     *
+     * @param other The BST to copy from.
+     */
+    Bst(const Bst<T>& other);
+     /**
+     * @brief Destructor.
+     *
+     * Releases all dynamically allocated nodes in the BST.
      */
     ~Bst();
     /**
-     * @brief Inserts a new piece of data into the tree.
-     * @param newData The value to be added.
-     * @return true if insertion was successful, false if duplicate.
+     * @brief Assignment operator.
+     *
+     * Replaces the contents of this BST with a deep copy of another BST.
+     *
+     * @param other The BST to assign from.
+     * @return Reference to this BST after assignment.
+     */
+    Bst<T>& operator=(const Bst<T>& other);
+
+    /**
+     * @brief Inserts a new value into the BST.
+     *
+     * Duplicate values are not inserted.
+     *
+     * @param newData The value to insert.
+     * @return true if insertion succeeds, false if the value is a duplicate.
      */
     bool Insert(const T& newData);
+
     /**
-     * @brief Searches for a specific value in the tree.
-     * @param target The value to find.
-     * @return true if the value exists in the tree.
+     * @brief Searches for a target value in the BST.
+     *
+     * @param target The value to search for.
+     * @return true if the target exists in the BST, false otherwise.
      */
     bool Search(const T& target) const;
+
     /**
-     * @brief Deallocates the entire tree memory.
+     * @brief Traverses the BST in in-order sequence using a visitor function.
+     *
+     * In-order sequence is: Left, Root, Right.
+     *
+     * @param visit Function pointer applied to each visited node.
+     * @param out Vector passed to the visitor for output or accumulation.
      */
-    void DeleteTree();
+    void InOrderTraversal(Visitor visit, Vector<T>& out) const;
     /**
-     * @brief Prints the tree content in ascending order (Left-Root-Right).
+     * @brief Traverses the BST in pre-order sequence using a visitor function.
+     *
+     * Pre-order sequence is: Root, Left, Right.
+     *
+     * @param visit Function pointer applied to each visited node.
+     * @param out Vector passed to the visitor for output or accumulation.
      */
-    void InOrderTraversal() const;
+    void PreOrderTraversal(Visitor visit, Vector<T>& out) const;
     /**
-     * @brief Prints the tree content in Pre-Order (Root-Left-Right).
+     * @brief Traverses the BST in post-order sequence using a visitor function.
+     *
+     * Post-order sequence is: Left, Right, Root.
+     *
+     * @param visit Function pointer applied to each visited node.
+     * @param out Vector passed to the visitor for output or accumulation.
      */
-    void PreOrderTraversal() const;
+    void PostOrderTraversal(Visitor visit, Vector<T>& out) const;
     /**
-     * @brief Prints the tree content in Post-Order (Left-Right-Root).
+     * @brief Copies BST contents into a Vector in sorted order.
+     *
+     * This uses in-order traversal with the InsertIntoVector visitor.
+     *
+     * @param out The output vector that will receive the BST contents.
      */
-    void PostOrderTraversal() const;
-    /**
-     * @brief Validates the BST properties.
-     * @return true if the tree is a valid BST, false otherwise.
-     */
+    void ToVector(Vector<T>& out) const;
 
 
 private:
-    Node<T> *m_root; ///< The entry point of the tree.
-    /**
-     * @brief Recursive helper for insertion.
-     * @param newNode The node prepared for insertion.
-     * @param parent The current node being compared against.
+    Node<T> *m_root; //  // Store pointer to the root node of the BST
+     /**
+     * @brief Recursive helper used to insert a new node beneath a parent node.
+     *
+     * @param newNode Pointer to the newly created node to insert.
+     * @param parent Pointer to the current parent node being compared against.
+     * @return true if insertion succeeds, false if a duplicate is found.
      */
     bool Insert(Node<T>* newNode, Node<T>* parent);
-    /**
-     * @brief Recursive helper for searching.
+     /**
+     * @brief Recursive helper used to search for a target value.
+     *
+     * @param root Pointer to the current subtree root being searched.
+     * @param target The value to search for.
+     * @return true if found, false otherwise.
      */
     bool Search(Node<T>* root, const T& target) const;
-    void InOrder(Node<T>* node) const;
-    void PreOrder(Node<T>* node) const;
-    void PostOrder(Node<T>* node) const;
+     /**
+     * @brief Recursive helper for in-order traversal.
+     *
+     * @param node Pointer to the current node.
+     * @param visit Visitor function applied to the node.
+     * @param out Vector passed to the visitor.
+     */
+    void InOrder(Node<T>* node, Visitor visit, Vector<T>& out) const;
     /**
-     * @brief Recursive helper for tree deletion using Post-Order logic.
-     * @param node Reference to the pointer to be deleted.
+     * @brief Recursive helper for pre-order traversal.
+     *
+     * @param node Pointer to the current node.
+     * @param visit Visitor function applied to the node.
+     * @param out Vector passed to the visitor.
+     */
+    void PreOrder(Node<T>* node, Visitor visit, Vector<T>& out) const;
+    /**
+     * @brief Recursive helper for post-order traversal.
+     *
+     * @param node Pointer to the current node.
+     * @param visit Visitor function applied to the node.
+     * @param out Vector passed to the visitor.
+     */
+    void PostOrder(Node<T>* node, Visitor visit, Vector<T>& out) const;
+    /**
+     * @brief Recursively deletes all nodes in a subtree.
+     *
+     * @param node Reference to the pointer of the current subtree root.
      */
     void DeleteTree(Node<T>*& node);
+     /**
+     * @brief Recursively creates a deep copy of a subtree.
+     *
+     * @param node Pointer to the subtree root to copy.
+     * @return Pointer to the root of the newly copied subtree.
+     */
+    Node<T>* CopyTree(const Node<T>* node);
+
+
 
 };
-// Constructor
-// Initializes the BST by setting the root pointer to null
+
 template <class T>
-Bst<T>::Bst()
+Bst<T>::Bst() // Define default constructor
 {
-    m_root = nullptr;
+    m_root = nullptr;  // Initialize the tree as empty by setting root to null
 }
-// Destructor
-// Ensures that all dynamically allocated nodes in the tree are deleted
+
+template <class T>
+Bst<T>::Bst(const Bst<T>& other)
+{
+    m_root = CopyTree(other.m_root); // Deep-copy the other tree starting from its root
+}
+
 template <class T>
 Bst<T>::~Bst()
 {
-    DeleteTree();
+    DeleteTree(m_root);  // Delete all nodes in the tree starting from the root
 }
-// Public Insert function
-// Creates a new node and inserts it into the BST
+
+template <class T>
+Bst<T>& Bst<T>::operator=(const Bst<T>& other)
+{
+    if (this != &other) // Check for self-assignment
+    {
+        DeleteTree(m_root); // Delete current tree contents before copying new contents
+        m_root = CopyTree(other.m_root); // Deep-copy the other tree into this tree
+    }
+    return *this; // Return this object by reference
+}
+
 template <class T>
 bool Bst<T>::Insert(const T& newData)
 {
-    // Allocate memory for a new node
-    Node<T>* newNode = new Node<T>;
 
-    // Initialize the node values
-    newNode->data = newData;
-    newNode->left = nullptr;
-    newNode->right = nullptr;
+    Node<T>* newNode = new Node<T>; // Allocate memory for a new node
 
-    // If the tree is empty, the new node becomes the root
-    if (m_root == nullptr)
+    newNode->data = newData; // Store the new data in the node
+    newNode->left = nullptr; // Initialize left child pointer as null
+    newNode->right = nullptr;  // Initialize right child pointer as null
+
+
+    if (m_root == nullptr) // Check whether the tree is currently empty
     {
-        m_root = newNode;
+        m_root = newNode;  // Make the new node the root if tree is empty
         return true;
     }
     else
     {
-         // Otherwise recursively insert starting from the root
-        return Insert(newNode, m_root);
+
+        return Insert(newNode, m_root); // Insert recursively starting from the root
     }
 }
-// Recursive insert helper function
-// Places the new node in the correct position
+
 template <class T>
 bool Bst<T>::Insert(Node<T>* newNode, Node<T>* parent)
 {
-    // If the new value is smaller, go to the left subtree
-    if (newNode->data < parent->data)
+
+    if (newNode->data < parent->data) // Check if new node belongs in the left subtree
     {
-        if (parent->left == nullptr)
+        if (parent->left == nullptr)  // Check if left child position is empty
         {
-            // insertion point
-            parent->left = newNode;
+
+            parent->left = newNode; // Attach new node as left child
+            return true;
+        }
+        else // Otherwise left subtree already exists
+        {
+
+            return Insert(newNode, parent->left); // Continue recursive insertion into left subtree
+        }
+    }
+
+    else if (newNode->data > parent->data) // Check if new node belongs in the right subtree
+    {
+        if (parent->right == nullptr) // Check if right child position is empty
+        {
+
+            parent->right = newNode; // Attach new node as right child
             return true;
         }
         else
         {
-            // Continue searching down the left subtree
-            return Insert(newNode, parent->left);
+
+            return Insert(newNode, parent->right); // Continue recursive insertion into right subtree
         }
     }
-    // If the new value is larger, go to the right subtree
-    else if (newNode->data > parent->data)
+
+    else // Otherwise the value is equal to parent data
     {
-        if (parent->right == nullptr)
-        {
-            // insertion point
-            parent->right = newNode;
-            return true;
-        }
-        else
-        {
-            // Continue searching down the right subtree
-            return Insert(newNode, parent->right);
-        }
-    }
-    // delete the node if its a Duplicate
-    else
-    {
-        delete newNode;
-        return false;
+        delete newNode; // Delete the allocated node because duplicates are not allowed
+        return false;  // Report insertion failure due to duplicate
     }
 }
 
-// Public Search function
-// Begins recursive search starting from the root
+
 template <class T>
 bool Bst<T>::Search(const T& target) const
 {
-    return Search(m_root, target);
+    return Search(m_root, target);  // Start recursive search from the root
 }
 
-// Recursive search helper function
-// Traverses the BST based on comparison with the target value
+
 template <class T>
 bool Bst<T>::Search(Node<T>* root, const T& target) const
 {
-    // Base case: reached a null node, value not found
-    if (root == nullptr)
+
+    if (root == nullptr) // Check if current subtree is empty
     {
-        return false;
+        return false; // Target cannot exist in an empty subtree
     }
-    // Target found
-    if (root->data == target)
+
+    if (root->data == target) // Check if current node matches the target
     {
         return true;
     }
-    // Search left subtree if target is smaller
-    if (target < root->data)
+
+    if (target < root->data) // Check if current node matches the target
     {
-        return Search(root->left, target);
+        return Search(root->left, target); // Recursively search left subtree
     }
-    else
+    else // Otherwise target must be searched in the right subtree
     {
-        // Otherwise search right subtree
-        return Search(root->right, target);
+
+        return Search(root->right, target); // Recursively search right subtree
     }
 }
-// Starts an in-order traversal from the root
+
 template <class T>
-void Bst<T>::InOrderTraversal() const
+void Bst<T>::InOrderTraversal(Visitor visit, Vector<T>& out) const // Define public in-order traversal
 {
-    InOrder(m_root);
+    InOrder(m_root, visit, out); // Start in-order traversal from the root
 }
-// In-order traversal
-// Visits nodes in Left -> Root -> Right order
+
 template <class T>
-void Bst<T>::InOrder(Node<T>* node) const
+void Bst<T>::InOrder(Node<T>* node, Visitor visit, Vector<T>& out) const
 {
-    if (node == nullptr)
+    if (node == nullptr) // Check if current node is null
         return;
 
-    InOrder(node->left);
-    cout << node->data << " ";
-    InOrder(node->right);
+    InOrder(node->left, visit, out); // Visit left subtree first
+    visit(node->data, out); // Apply visitor function to current node data
+    InOrder(node->right, visit, out); // Visit right subtree last
 }
-// Starts a pre-order traversal from the root
+
 template <class T>
-void Bst<T>::PreOrderTraversal() const
+void Bst<T>::PreOrderTraversal(Visitor visit, Vector<T>& out) const
 {
-    PreOrder(m_root);
+    PreOrder(m_root, visit, out); // Start pre-order traversal from the root
 }
-// Pre-order traversal
-// Visits nodes in Root -> Left -> Right order
+
 template <class T>
-void Bst<T>::PreOrder(Node<T>* node) const
+void Bst<T>::PreOrder(Node<T>* node, Visitor visit, Vector<T>& out) const
 {
-    if (node == nullptr)
+    if (node == nullptr) // Check if current node is null
         return;
 
-    cout << node->data << " ";
-    PreOrder(node->left);
-    PreOrder(node->right);
+    visit(node->data, out); // Apply visitor function to current node data first
+    PreOrder(node->left, visit, out); // Traverse left subtree next
+    PreOrder(node->right, visit, out); // Traverse right subtree last
 }
 
-// Starts a post-order traversal from the root
+
 template <class T>
-void Bst<T>::PostOrderTraversal() const
+void Bst<T>::PostOrderTraversal(Visitor visit, Vector<T>& out) const
 {
-    PostOrder(m_root);
+    PostOrder(m_root, visit, out); // Start post-order traversal from the root
 }
 
-// Post-order traversal
-// Visits nodes in Left -> Right -> Root order
+
 template <class T>
-void Bst<T>::PostOrder(Node<T>* node) const
+void Bst<T>::PostOrder(Node<T>* node, Visitor visit, Vector<T>& out) const
 {
-    if (node == nullptr)
+    if (node == nullptr)  // Check if current node is null
         return;
 
-    PostOrder(node->left);
-    PostOrder(node->right);
-    cout << node->data << " ";
+    PostOrder(node->left, visit, out); // Traverse left subtree first
+    PostOrder(node->right, visit, out); // Traverse right subtree second
+    visit(node->data, out);  // Apply visitor function to current node data last
 }
-// Public delete function
-// Deletes all nodes in the tree
-template <class T>
-void Bst<T>::DeleteTree()
-{
-    DeleteTree(m_root);
-}
-// Recursive delete helper
-// Uses post-order traversal to safely delete nodes
+
+
 template <class T>
 void Bst<T>::DeleteTree(Node<T>*& node)
 {
-    if (node == nullptr)
+    if (node == nullptr) // Check if current node is null
         return;
 
-    DeleteTree(node->left);
-    DeleteTree(node->right);
+    DeleteTree(node->left);   // Recursively delete left subtree
+    DeleteTree(node->right);  // Recursively delete right subtree
 
-    delete node;
-    node = nullptr;
+    delete node; // Delete current node after its children are deleted
+    node = nullptr; // Set pointer to null to avoid dangling pointer
 }
 
+template <class T>
+Node<T>* Bst<T>::CopyTree(const Node<T>* node)
+{
+    if (node == nullptr) // Check if source subtree is empty
+        return nullptr;
+
+    Node<T>* newNode = new Node<T>; // Allocate memory for a new copied node
+    newNode->data = node->data; // Copy data from source node into new node
+    newNode->left = CopyTree(node->left); // Recursively copy the left subtree
+    newNode->right = CopyTree(node->right); // Recursively copy the right subtree
+
+    return newNode;
+}
+
+template <class T>
+void Bst<T>::ToVector(Vector<T>& out) const
+{
+    out.Clear(); // Clear output vector before inserting tree contents
+    InOrderTraversal(InsertIntoVector<T>, out); // Use in-order traversal with visitor to insert values into vector
+}
 
 #endif // BST_H_INCLUDED
 
