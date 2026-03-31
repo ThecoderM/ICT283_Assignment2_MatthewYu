@@ -1,0 +1,62 @@
+#include "WeatherAnalytics.h"
+#include "Math.h"
+
+Vector<WeatherRecord> WeatherAnalytics::FilterMonthYear(const WeatherLog& log, int month, int year)
+{
+    Vector<WeatherRecord> out; // Output vector for matching records
+    for (int i = 0; i < log.Size(); i++) // Loop through all records in the log
+    {
+        WeatherRecord r = log.GetAt(i); // Retrieve record at index i
+        if (r.GetDate().GetMonth() == month && r.GetDate().GetYear() == year) // Match month and year
+            out.Insert(r, out.Size()); // Append matching record
+    }
+    return out;  // Return filtered records
+}
+
+Vector<double> WeatherAnalytics::ExtractWindKmh(const Vector<WeatherRecord>& rows)
+{
+    Vector<double> v;   // Store wind values in km/h
+    for (int i = 0; i < rows.Size(); i++) // Store wind values in km/h
+        if (rows[i].GetHasSpeed())  // Only include records with valid speed
+            v.Insert(Math::MsToKmh(rows[i].GetSpeed()), v.Size()); // Convert m/s to km/h and append
+    return v; // Return wind vector
+}
+
+Vector<double> WeatherAnalytics::ExtractTempC(const Vector<WeatherRecord>& rows)
+{
+    Vector<double> v;  // Store temperature values
+    for (int i = 0; i < rows.Size(); i++) // Loop through records
+        if (rows[i].GetHasAmbientAirTemperature()) // Only include records with valid temperature
+            v.Insert(rows[i].GetAmbientAirTemperature(), v.Size()); // Append temperature
+    return v; // Return temperature vector
+}
+
+bool WeatherAnalytics::SolarTotalKWhm2(const Vector<WeatherRecord>& rows, double& total)
+{
+    total = 0.0;  // Initialise total solar energy
+    bool any = false; // Track whether any valid SR contributes
+
+    for (int i = 0; i < rows.Size(); i++) // Loop through records
+    {
+        if (rows[i].GetHasSolarRadiation()) // Only process if solar radiation is present
+        {
+            double add = Math::SolarWm2_10min_To_kWhm2(rows[i].GetSolarRadiation()); // Convert to kWh/m^2 for 10-min interval
+            if (add > 0.0) // Only include SR >= 100 W/m^2 (conversion returns 0 below threshold)
+            {
+                total += add; // Add to total
+                any = true;  // Mark that we have valid contribution
+            }
+        }
+    }
+    return any; // Return whether there was any valid solar data
+}
+
+bool WeatherAnalytics::MonthHasAnyData(const Vector<WeatherRecord>& rows)
+{
+    for (int i = 0; i < rows.Size(); i++) // Loop through all records for the month
+    {   // Check if wind speed, temperature, solar radiation exists
+        if (rows[i].GetHasSpeed() || rows[i].GetHasAmbientAirTemperature() || rows[i].GetHasSolarRadiation())
+            return true; // Month has at least one data value
+    }
+    return false; // No values exist for this month
+}

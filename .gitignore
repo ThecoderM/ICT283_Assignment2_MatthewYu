@@ -1,0 +1,11 @@
+# Ignore compiled executables and object files
+*.exe
+*.o
+*.obj
+*.out
+
+# Ignore IDE specific folders (like VS Code or Visual Studio)
+.vscode/
+.vs/
+bin/
+obj/
